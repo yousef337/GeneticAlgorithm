@@ -11,15 +11,19 @@ public class Main {
     private final static int MAX_DOMAIN = 6;
     private final static int MIN_DOMAIN = -6;
     private final static int ELITE_MAX = 5;
-    private final static double mutateProbability = 0.1;
+    private final static double MUTATE_PROBABILITY = 0.1;
+    private final static Random RAND = new Random();
 
+    /**
+     * the method that is used to run the program
+     * @param args args
+     */
     public static void main(String[] args) {
 
-        Random rand = new Random();
         Individual[] population = new Individual[POPULATION];
 
         for (int i = 0; i < POPULATION; i++)
-            population[i] = createRandomIndiv(rand);
+            population[i] = createRandomIndividual();
 
         for (int i = 0; i < MAX_GENERATIONS; i++) {
             population = run(population);
@@ -32,24 +36,33 @@ public class Main {
 
     }
 
-    // generate
-
-    private static Individual createRandomIndiv(Random rand){
-        return new Individual(new double[]{(rand.nextDouble()*MAX_DOMAIN)+MIN_DOMAIN, (rand.nextDouble()*MAX_DOMAIN)+MIN_DOMAIN});
+    /**
+     * This method creates a random individual
+     * @return a random individual
+     */
+    private static Individual createRandomIndividual(){
+        return new Individual(new double[]{(RAND.nextDouble()*MAX_DOMAIN)+MIN_DOMAIN, (RAND.nextDouble()*MAX_DOMAIN)+MIN_DOMAIN});
     }
 
 
-    // To account for negative fitness, all values were increased by the fitness of the least individual
+
     // ELITE + Proportional
+
+    /**
+     * This method is used to generate the new generation
+     * @param population the population
+     * @return a nre generation
+     */
     private static Individual[] run(Individual[] population){
         Individual[] pop = population.clone();
         Arrays.sort(pop, Comparator.comparing(Individual::getFitness).reversed());
 
         Individual[] newGeneration = new Individual[POPULATION];
 
-        // ELITE SELECTION
+        // Elite selection
         System.arraycopy(pop, 0, newGeneration, 0, ELITE_MAX);
 
+        // Proportional selection
         double totalFitness = Math.round(Arrays.stream(pop).map(Individual::getFitness).reduce((double) 0, Double::sum)*100)/100.0;
         Double[] fitnessArray = Arrays.stream(pop).map(Individual::getFitness).map(i -> i/totalFitness).toArray(Double[]::new);
 
@@ -64,18 +77,22 @@ public class Main {
 
             // mutate
 
-            newGeneration[i + ELITE_MAX] = newPopulation(pop[a], pop[b]);
+            newGeneration[i + ELITE_MAX] = newIndividual(pop[a], pop[b]);
             mutate(newGeneration[i + ELITE_MAX]);
         }
 
         return newGeneration;
     }
 
+    /**
+     * This method select a random, based on their probability, individual from the population
+     * @param proportions an array that contains the probability of each individual in a sorted way that align with fitness values of the population.
+     * @return an integer that represents the selected individual's position
+     */
     private static int selectIndividual(Double[] proportions){
         int a = -1;
 
-        Random rand = new Random();
-        double prob = Math.round(rand.nextDouble()*100)/100.0;
+        double prob = Math.round(RAND.nextDouble()*100)/100.0;
 
         int counter = 0;
         double sum = proportions[0];
@@ -90,36 +107,32 @@ public class Main {
         return a;
     }
 
-    // Crossover - Linear combination
-    //
-    private static Individual newPopulation(Individual parent1, Individual parent2){
-        /*System.out.println("--------");
-        System.out.println(parent1.getFitness());
-        System.out.println(parent2.getFitness());
-        System.out.println("--------");*/
-        Random rand = new Random();
-        double alpha = rand.nextDouble();
+    /**
+     * This method returns an offspring of two parents. The applied methodology uses linear combination
+     * in order to create the new gene
+     *
+     * @param parent1 the first parent
+     * @param parent2 the second parent
+     * @return the new child
+     */
+    private static Individual newIndividual(Individual parent1, Individual parent2){
+
+        double alpha = RAND.nextDouble();
 
         double gene1 = alpha*(parent1.getGeneList()[0]-parent2.getGeneList()[0])+parent2.getGeneList()[0];
         double gene2 = alpha*(parent1.getGeneList()[1]-parent2.getGeneList()[1])+parent2.getGeneList()[0];
 
-        /*
-        System.out.println("---///---");
-        System.out.println(gene1);
-        System.out.println(parent1.getGeneList()[0]);
-        System.out.println(parent2.getGeneList()[0]);
-        System.out.println("---///---");*/
-
         return new Individual(new double[]{gene1, gene2});
     }
 
-    // Mutate
-
+    /**
+     * This method simulate the mutation of an individual in a random way
+     * @param ind an individual
+     */
     private static void mutate(Individual ind){
-        Random rand = new Random();
         for (int i = 0; i < ind.getGeneList().length; i++)
-            if (rand.nextDouble() < mutateProbability)
-                ind.changeGeneX(rand.nextDouble(),i);
+            if (RAND.nextDouble() < MUTATE_PROBABILITY)
+                ind.changeGeneX(RAND.nextDouble(),i);
     }
 
 
