@@ -1,4 +1,4 @@
-package com.company.MaximaFunction;
+package com.example.geneticalgorithm.GA.MaximaFunction;
 
 /**
  * Individual class represent an individual in the population.

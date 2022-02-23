@@ -1,4 +1,4 @@
-package com.company.knapsack;
+package com.example.geneticalgorithm.GA.knapsack;
 
 /**
  * This class is intended to represent an item in a knapsack

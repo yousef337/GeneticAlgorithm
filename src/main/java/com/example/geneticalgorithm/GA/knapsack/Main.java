@@ -1,4 +1,4 @@
-package com.company.knapsack;
+package com.example.geneticalgorithm.GA.knapsack;
 
 import java.util.*;
 

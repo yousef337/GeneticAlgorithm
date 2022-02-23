@@ -1,4 +1,5 @@
-package com.company.MaximaFunction;
+package com.example.geneticalgorithm.GA.MaximaFunction;
+
 
 import java.util.Arrays;
 import java.util.Comparator;

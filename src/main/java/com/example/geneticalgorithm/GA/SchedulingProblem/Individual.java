@@ -1,4 +1,4 @@
-package com.company.SchedulingProblem;
+package com.example.geneticalgorithm.GA.SchedulingProblem;
 
 public class Individual {
 
@@ -22,6 +22,10 @@ public class Individual {
 
     public static int getShiftsPerDays() {
         return SHIFTS_PER_DAYS;
+    }
+
+    public static int getDAYS() {
+        return DAYS;
     }
 
     public static int getEMPLOYEES() {
