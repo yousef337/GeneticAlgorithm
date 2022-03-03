@@ -1,14 +1,19 @@
 package com.example.geneticalgorithm.GA.SchedulingProblem;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Random;
 
+/**
+ *
+ * This class is intended to provide a solution using genetic algorithm to solve the scheduling problem.
+ *
+ * @version 2022-03-03
+ */
 public class Main {
 
     private final static int POPULATION_SIZE = 20;
-    private final static int MAX_GENERATIONS = 15;
+    private final static int MAX_GENERATIONS = 25;
     private static final Random RAND = new Random();
     private static final int MAX_FITNESS = maximumFitness();
     private static final int TOURNAMENT_SELECTION_GROUP_SIZE = 4;
@@ -19,6 +24,7 @@ public class Main {
      * This method calculates the maximum possible fitness for a schedule.
      * @return the maximum & targeted fitness.
      */
+    //TODO sometimes an individual fitness exceeds the maximum number
     private static int maximumFitness(){
         return Individual.getDAYS()*Individual.getShiftsPerDays() + Individual.getEMPLOYEES() * Individual.getDAYS() + Individual.getEMPLOYEES() * (Individual.getDAYS()-1);
     }
@@ -27,19 +33,54 @@ public class Main {
         System.out.println("Max Fitness: " + MAX_FITNESS);
 
         Individual[] population = new Individual[POPULATION_SIZE];
+        double[] avgs = new double[MAX_GENERATIONS];
 
         for (int i = 0; i < POPULATION_SIZE; i++)
             population[i] = generateSchedule();
 
-        // ELITE tournament
+        boolean found = false;
+        Individual best = null;
 
-        Individual[] selected = eliteTournament(population);
+        for (int i = 0; i < MAX_GENERATIONS && !found; i++) {
 
-        // Crossover ELITE
-        Individual[] newGeneration = crossover(selected);
+            // ELITE tournament
 
-        // 1 bit flip
+            Individual[] selected = eliteTournament(population);
 
+            // Crossover ELITE
+            Individual[] newGeneration = crossover(selected);
+
+            // 1 bit flip
+            for (Individual ind: newGeneration)
+                mutate(ind);
+
+            population = newGeneration;
+
+            if (fitness((Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0]) == MAX_FITNESS){
+                best = (Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0];
+                found = true;
+            }else{
+                best = (Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0];
+            }
+
+            avgs[i] = Arrays.stream(population).mapToDouble(Main::fitness).average().getAsDouble();
+
+        }
+
+        System.out.println(Arrays.toString(avgs));
+        System.out.println(fitness(best));
+
+
+    }
+
+
+    /**
+     * This method mutate a random position on the individual
+     * @param individual the individual to be mutated
+     */
+    private static void mutate(Individual individual){
+        Random rand = new Random();
+        individual.getSchedule()[rand.nextInt(Individual.getEMPLOYEES())][rand.nextInt(Individual.getDAYS()*Individual.getShiftsPerDays())] =  (individual.getSchedule()[rand.nextInt(Individual.getEMPLOYEES())][rand.nextInt(Individual.getDAYS()*Individual.getShiftsPerDays())]+1)%2;
     }
 
 
@@ -55,25 +96,50 @@ public class Main {
 
         for (int i = 0; i < POPULATION_SIZE; i+=2) {
 
-            Individual parent1 = population[rand.nextInt(POPULATION_SIZE)];
-            Individual parent2 = population[rand.nextInt(POPULATION_SIZE)];
+            Individual parent1 = population[rand.nextInt(SELECTION_SIZE)];
+            Individual parent2 = population[rand.nextInt(SELECTION_SIZE)];
 
             while (parent1 == parent2)
-                parent2 = population[rand.nextInt(POPULATION_SIZE)];
+                parent2 = population[rand.nextInt(SELECTION_SIZE)];
+
 
             Individual[] offspring = offspring(parent1, parent2);
 
-            newPopulation[i] = offspring[0];
-            newPopulation[i+1] = offspring[1];
+            // Take only the best
+
+            Object[] bestTwo = Arrays.stream(new Individual[]{offspring[0], offspring[1]}).sorted(Comparator.comparing(Main::fitness)).toArray();
+
+
+            newPopulation[i] = (Individual) bestTwo[0];
+            newPopulation[i+1] = (Individual) bestTwo[1];
 
         }
 
         return newPopulation;
     }
 
-    
+    /**
+     * This method returns an array of Individuals, of length 2, that have a combination of the parent's genes.
+     *
+     * @param parent1 the first parent
+     * @param parent2 the second parent
+     * @return the offspring
+     */
     private static Individual[] offspring(Individual parent1, Individual parent2){
-        return null;
+
+        int[][] offspring1 = new int[parent1.getSchedule().length][parent1.getSchedule()[0].length];
+        int[][] offspring2 = new int[parent1.getSchedule().length][parent1.getSchedule()[0].length];
+
+        for (int i = 0; i < Individual.getDAYS(); i++) {
+            System.arraycopy(parent1.getSchedule()[i],0,offspring1[i],0,parent1.getSchedule()[i].length/2);
+            System.arraycopy(parent2.getSchedule()[i],0,offspring1[i],0,parent2.getSchedule()[i].length/2);
+
+            System.arraycopy(parent2.getSchedule()[i],0,offspring2[i],0,parent2.getSchedule()[i].length/2);
+            System.arraycopy(parent1.getSchedule()[i],0,offspring2[i],0,parent1.getSchedule()[i].length/2);
+
+        }
+
+        return new Individual[]{new Individual(offspring1), new Individual(offspring2)};
     }
 
     /**
