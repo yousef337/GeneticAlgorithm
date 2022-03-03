@@ -2,9 +2,9 @@ package com.example.geneticalgorithm.GA.SchedulingProblem;
 
 public class Individual {
 
-    private static final int DAYS = 5;
+    private static final int DAYS = 7;
     private static final int SHIFTS_PER_DAYS = 3;
-    private static final int EMPLOYEES = 5;
+    private static final int EMPLOYEES = 15;
 
     private int[][] schedule;
 
