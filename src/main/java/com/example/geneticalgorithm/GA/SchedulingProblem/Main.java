@@ -15,8 +15,8 @@ import java.util.Random;
  */
 public class Main {
 
-    private final static int POPULATION_SIZE = 20;
-    private final static int MAX_GENERATIONS = 25;
+    private final static int POPULATION_SIZE = 50;
+    private final static int MAX_GENERATIONS = 50;
     private static final Random RAND = new Random();
     private static final int MAX_FITNESS = maximumFitness();
     private static final int TOURNAMENT_SELECTION_GROUP_SIZE = 4;
@@ -31,7 +31,7 @@ public class Main {
      * @return the maximum & targeted fitness.
      */
     private static int maximumFitness(){
-        return Individual.getDAYS()*Individual.getShiftsPerDays() + Individual.getEMPLOYEES() * Individual.getDAYS() + Individual.getEMPLOYEES() * (Individual.getDAYS()-1);
+        return (100*Individual.getDAYS()*Individual.getShiftsPerDays()) + Individual.getEMPLOYEES() * Individual.getDAYS() + Individual.getEMPLOYEES() * (Individual.getDAYS()-1);
     }
 
     public static void main(String[] args) {
@@ -45,6 +45,7 @@ public class Main {
             population[i] = generateSchedule();
 
         boolean found = false;
+        Individual best = null;
 
         for (int i = 0; i < MAX_GENERATIONS && !found; i++) {
 
@@ -61,13 +62,20 @@ public class Main {
 
             population = newGeneration;
 
-            if (fitness((Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0]) == MAX_FITNESS)
+            if (fitness((Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0]) == MAX_FITNESS) {
                 found = true;
+            }
+            best = (Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0];
 
             avgFitness[i] = Arrays.stream(population).mapToDouble(Main::fitness).average().getAsDouble();
             bestFitness[i] = fitness((Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0]);
 
         }
+
+        //Print the best
+        for (int[] a: best.getSchedule())
+            System.out.println(Arrays.toString(a));
+
 
         LineChartView lcv = new LineChartView();
         lcv.setDate();
@@ -133,10 +141,10 @@ public class Main {
 
         for (int i = 0; i < Individual.getDAYS(); i++) {
             System.arraycopy(parent1.getSchedule()[i],0,offspring1[i],0,parent1.getSchedule()[i].length/2);
-            System.arraycopy(parent2.getSchedule()[i],0,offspring1[i],0,parent2.getSchedule()[i].length/2);
+            System.arraycopy(parent2.getSchedule()[i],parent1.getSchedule()[i].length/2,offspring1[i],parent1.getSchedule()[i].length/2,parent2.getSchedule()[i].length/2);
 
             System.arraycopy(parent2.getSchedule()[i],0,offspring2[i],0,parent2.getSchedule()[i].length/2);
-            System.arraycopy(parent1.getSchedule()[i],0,offspring2[i],0,parent1.getSchedule()[i].length/2);
+            System.arraycopy(parent1.getSchedule()[i],parent2.getSchedule()[i].length/2,offspring2[i],parent2.getSchedule()[i].length/2,parent2.getSchedule()[i].length/2);
 
         }
 
@@ -191,19 +199,19 @@ public class Main {
         int[][] morningShift = getShift(0, individual);
         int[][] morningShiftT = transpose(morningShift);
 
-        fitness += Math.toIntExact(Arrays.stream(morningShiftT).map(i -> Arrays.stream(i).sum()).filter(i -> i >= 1 && i <= 4).count());
+        fitness += 100*Math.toIntExact(Arrays.stream(morningShiftT).map(i -> Arrays.stream(i).sum()).filter(i -> i >= 1 && i <= 4).count());
 
         // Midday shift // Contributing 5 Fitness for 5 midday shifts
         int[][] middayShift = getShift(1, individual);
         int[][] middayShiftT = transpose(middayShift);
 
-        fitness += Math.toIntExact(Arrays.stream(middayShiftT).map(i -> Arrays.stream(i).sum()).filter(i -> i >= 2 && i <= 5).count());
+        fitness += 100*Math.toIntExact(Arrays.stream(middayShiftT).map(i -> Arrays.stream(i).sum()).filter(i -> i >= 2 && i <= 5).count());
 
         // Evening shift // Contributing 5 Fitness for 5 evenings
         int[][] eveningShift = getShift(2, individual);
         int[][] eveningShiftT = transpose(eveningShift);
 
-        fitness += Arrays.stream(eveningShiftT).map(i -> Arrays.stream(i).sum()).filter(i -> i >= 1 && i <= 2).count();
+        fitness += 100*Arrays.stream(eveningShiftT).map(i -> Arrays.stream(i).sum()).filter(i -> i >= 1 && i <= 2).count();
 
         // 3 consecutive shifts // Contributing 25 Fitness for 5 employees * 5 days
 
