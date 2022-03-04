@@ -1,5 +1,8 @@
 package com.example.geneticalgorithm.GA.SchedulingProblem;
 
+import com.example.geneticalgorithm.UI.LineChartView;
+import javafx.application.Application;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
@@ -20,6 +23,9 @@ public class Main {
     private static final int SELECTION_SIZE = 10;
     private static final int ELITE_SIZE = 3;
 
+    private static double[] avgFitness;
+    private static double[] bestFitness;
+
     /**
      * This method calculates the maximum possible fitness for a schedule.
      * @return the maximum & targeted fitness.
@@ -33,13 +39,13 @@ public class Main {
         System.out.println("Max Fitness: " + MAX_FITNESS);
 
         Individual[] population = new Individual[POPULATION_SIZE];
-        double[] avgs = new double[MAX_GENERATIONS];
+        avgFitness = new double[MAX_GENERATIONS];
+        bestFitness = new double[MAX_GENERATIONS];
 
         for (int i = 0; i < POPULATION_SIZE; i++)
             population[i] = generateSchedule();
 
         boolean found = false;
-        Individual best = null;
 
         for (int i = 0; i < MAX_GENERATIONS && !found; i++) {
 
@@ -56,21 +62,17 @@ public class Main {
 
             population = newGeneration;
 
-            if (fitness((Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0]) == MAX_FITNESS){
-                best = (Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0];
+            if (fitness((Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0]) == MAX_FITNESS)
                 found = true;
-            }else{
-                best = (Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0];
-            }
 
-            avgs[i] = Arrays.stream(population).mapToDouble(Main::fitness).average().getAsDouble();
+            avgFitness[i] = Arrays.stream(population).mapToDouble(Main::fitness).average().getAsDouble();
+            bestFitness[i] = fitness((Individual) Arrays.stream(population).sorted(Comparator.comparing(Main::fitness)).skip(POPULATION_SIZE-1).toArray()[0]);
 
         }
 
-        System.out.println(Arrays.toString(avgs));
-        System.out.println(fitness(best));
-
-
+        LineChartView lcv = new LineChartView();
+        lcv.setDate();
+        Application.launch(LineChartView.class);
     }
 
 
@@ -287,4 +289,11 @@ public class Main {
         return new Individual(genes);
     }
 
+    public static double[] getAvgFitness() {
+        return avgFitness;
+    }
+
+    public static double[] getBestFitness() {
+        return bestFitness;
+    }
 }
