@@ -30,7 +30,6 @@ public class Main {
      * This method calculates the maximum possible fitness for a schedule.
      * @return the maximum & targeted fitness.
      */
-    //TODO sometimes an individual fitness exceeds the maximum number
     private static int maximumFitness(){
         return Individual.getDAYS()*Individual.getShiftsPerDays() + Individual.getEMPLOYEES() * Individual.getDAYS() + Individual.getEMPLOYEES() * (Individual.getDAYS()-1);
     }
