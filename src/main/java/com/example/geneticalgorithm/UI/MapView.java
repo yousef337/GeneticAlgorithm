@@ -31,7 +31,7 @@ public class MapView extends Application {
 
         RadarMain radarMap = new RadarMain(WIDTH, HEIGHT);
 
-        MapGraph view = new MapGraph(WIDTH*8, HEIGHT*6);
+        MapGraph view = new MapGraph(WIDTH*5, HEIGHT*4);
 
         Territories[][] map = radarMap.getMap();
         for (int i = 0; i < map.length; i++)

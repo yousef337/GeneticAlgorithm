@@ -2,7 +2,7 @@ package com.example.geneticalgorithm.GA.RadarPlacement;
 
 public class Individual {
 
-    private final int SINGLE_RADAR_COVERAGE = 10;
+    private final int SINGLE_RADAR_COVERAGE = 3;
 
     private int[][] radarLocations;
 
