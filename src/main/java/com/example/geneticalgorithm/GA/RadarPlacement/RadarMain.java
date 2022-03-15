@@ -1,12 +1,15 @@
 package com.example.geneticalgorithm.GA.RadarPlacement;
 
 import NonUniformDistribution.NonUniformDistribution.*;
-import com.example.geneticalgorithm.GA.SchedulingProblem.Main;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
 
+/**
+ * This class is the main class of performing the GA for the radar placement problem.
+ * @author Yousef Altaher
+ */
 public class RadarMain {
 
     private Territories[][] map;
@@ -17,9 +20,16 @@ public class RadarMain {
     private final int POPULATION_SIZE = 20;
     private final int SELECTION_SIZE = 10;
     private final int ELITE_SIZE = 3;
-    private final int MAX_GENERATIONS = 300;
+    private final int MAX_GENERATIONS = 800;
     private final double MUTATE_PROBABILITY = 0.00001;
+    private Individual bestIndividual;
 
+    /**
+     * This method construct a RadarMain object with the essential functionalities. Note that this method also execute
+     * the algorithm.
+     * @param width map's width
+     * @param height map's height
+     */
     public RadarMain(int width, int height) {
         WIDTH = width;
         HEIGHT = height;
@@ -31,6 +41,9 @@ public class RadarMain {
 
     }
 
+    /**
+     * This method is used to execute the algorithm
+     */
     private void mainGAProcess(){
         // generate individuals
         Individual[] population = generatePopulation();
@@ -49,13 +62,18 @@ public class RadarMain {
 
             population = newGeneration;
 
-            //System.out.println(Arrays.stream(population).sorted(Comparator.comparing(this::fitness).reversed()).mapToDouble(this::fitness).toArray()[0]);
-
+            bestIndividual = (Individual) (Arrays.stream(population).sorted(Comparator.comparing(this::fitness)
+                    .reversed()).toArray()[0]);
         }
 
     }
 
-    // SELECTION - ELITE + Proportional
+    /**
+     * This method selects the individuals that will reproduce in the GA. This method uses elite with proportional
+     * selection.
+     * @param population the population
+     * @return the selected individual
+     */
     private Individual[] selection(Individual[] population){
         Individual[] selected = new Individual[SELECTION_SIZE];
 
@@ -91,6 +109,11 @@ public class RadarMain {
         return selected;
     }
 
+    /**
+     * This method facilitate the new generation, as a coordinator.
+     * @param population the current generation
+     * @return the new (next) generation
+     */
     private Individual[] newGeneration(Individual[] population){
         Random rand = new Random();
 
@@ -108,7 +131,8 @@ public class RadarMain {
             Individual[] offspring = bread(parent1, parent2);
 
 
-            Object[] bestTwo = Arrays.stream(new Individual[]{offspring[0], offspring[1], parent1, parent2}).sorted(Comparator.comparing(this::fitness).reversed()).toArray();
+            Object[] bestTwo = Arrays.stream(new Individual[]{offspring[0], offspring[1], parent1, parent2}).sorted(
+                    Comparator.comparing(this::fitness).reversed()).toArray();
 
 
             newGeneration[i] = (Individual) bestTwo[0];
@@ -119,6 +143,15 @@ public class RadarMain {
         return newGeneration;
     }
 
+    /**
+     * This method perform a crossover at the middle of the genes for every column from the parents, then the offspring
+     * will have the genes in a crossed way. I.e, the first offspring will have the first half from parent1 and the second
+     * half from parent2, while the other offspring will have the first half from parent2 and the second half from parent1.
+     *
+     * @param parent1 the first parent
+     * @param parent2 the second parent
+     * @return an array of the offspring
+     */
     private Individual[] bread(Individual parent1, Individual parent2){
         Individual[] offspring = new Individual[2];
         offspring[0] = new Individual(new int[WIDTH][HEIGHT]);
@@ -126,16 +159,26 @@ public class RadarMain {
 
         for (int i = 0; i < HEIGHT; i++) {
 
-            System.arraycopy(parent1.getRadarLocations()[i], 0, offspring[0].getRadarLocations()[i],0, parent1.getRadarLocations()[i].length/2);
-            System.arraycopy(parent2.getRadarLocations()[i], parent2.getRadarLocations()[i].length/2, offspring[0].getRadarLocations()[i],parent2.getRadarLocations()[i].length/2, parent2.getRadarLocations()[i].length/2);
+            System.arraycopy(parent1.getRadarLocations()[i], 0, offspring[0].getRadarLocations()[i],0,
+                    parent1.getRadarLocations()[i].length/2);
+            System.arraycopy(parent2.getRadarLocations()[i], parent2.getRadarLocations()[i].length/2,
+                    offspring[0].getRadarLocations()[i],parent2.getRadarLocations()[i].length/2,
+                    parent2.getRadarLocations()[i].length/2);
 
-            System.arraycopy(parent2.getRadarLocations(), 0, offspring[1].getRadarLocations(),0, parent1.getRadarLocations()[HEIGHT].length/2);
-            System.arraycopy(parent1.getRadarLocations()[i], parent1.getRadarLocations()[HEIGHT].length/2, offspring[1].getRadarLocations()[i],parent1.getRadarLocations()[HEIGHT].length/2, parent1.getRadarLocations()[HEIGHT].length/2);
+            System.arraycopy(parent2.getRadarLocations()[i], 0, offspring[1].getRadarLocations()[i],0,
+                    parent1.getRadarLocations()[i].length/2);
+            System.arraycopy(parent1.getRadarLocations()[i], parent1.getRadarLocations()[i].length/2,
+                    offspring[1].getRadarLocations()[i],parent1.getRadarLocations()[i].length/2,
+                    parent1.getRadarLocations()[i].length/2);
         }
 
         return offspring;
     }
 
+    /**
+     * This method mutates the radar placement of a random location based on a specific probability.
+     * @param individual an individual
+     */
     private void mutate(Individual individual){
         Random rand = new Random();
         for (int i = 0; i < WIDTH; i++)
@@ -147,8 +190,12 @@ public class RadarMain {
 
     }
 
-    // Cost and coverage
-    // The coverage will be the only measure in the meanwhile
+    /**
+     * This method returns the fitness of an individual. Every covered city will increment the fitness by one, while
+     * uncovered cities will decrement it by one. Then, the cost will be subtracted from the fitness.
+     * @param individual an individual
+     * @return the fitness of an individual
+     */
     private double fitness(Individual individual){
         int coveredCities = 0;
 
@@ -161,45 +208,68 @@ public class RadarMain {
                         coveredCities--;
 
 
-        int s = 0;
-        for (int[] f: individual.getRadarLocations())
-            for (int i: f)
-                if (i == 1)
-                    s++;
+        int totalCost = 0;
 
-        //System.out.println(s);
+        for (int i = 0; i < individual.getRadarLocations().length; i++) {
+            for (int j = 0; j < individual.getRadarLocations()[i].length; j++) {
+                if (individual.getRadarLocations()[i][j] == 1)
+                    totalCost += cost[i][j];
 
-        return coveredCities;
+            }
+        }
+
+        return coveredCities-totalCost;
     }
 
 
-    private boolean isCovered(Individual individual, int cityXCoordinate, int cityYCoordinate){
+    /**
+     * This method checks if a city is covered by a radar.
+     * @param individual the individual to be checked against
+     * @param cityXCoordinate city's x coordinate
+     * @param cityYCoordinate city's y coordinate
+     * @return true if the city is covered, false otherwise.
+     */
+    public boolean isCovered(Individual individual, int cityXCoordinate, int cityYCoordinate){
         int[][] radarLocations = individual.getRadarLocations().clone();
 
         for (int i = cityXCoordinate-10; i < cityXCoordinate + 10; i++)
             for (int j = cityYCoordinate - 10; j < cityYCoordinate + 10; j++)
-                if (i < WIDTH && i > 0 && j > 0 && j < HEIGHT && radarLocations[i][j] == 1 && distance(i,j, cityXCoordinate, cityYCoordinate) <= individual.getSINGLE_RADAR_COVERAGE())
+                if (i < WIDTH && i > 0 && j > 0 && j < HEIGHT && radarLocations[i][j] == 1 &&
+                        distance(i,j, cityXCoordinate, cityYCoordinate) <= individual.getSINGLE_RADAR_COVERAGE())
                     return true;
 
         return false;
     }
 
+    /**
+     * This method returns the distance between two points
+     * @param x1 first point x's position
+     * @param y1 first point y's position
+     * @param x2 second point x's position
+     * @param y2 second point y's position
+     * @return the distance between thw two points
+     */
     private double distance(int x1, int y1, int x2, int y2){
         return Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
     }
 
-
-    // Random cost in the meanwhile
+    /**
+     * This method generates random cost, bounded at 10, for radar placement.
+     */
     private void generateCosts(){
         Random rand = new Random();
         cost = new double[WIDTH][HEIGHT];
         for (int i = 0; i < cost.length; i++)
             for (int j = 0; j < cost[i].length; j++)
-                cost[i][j] = rand.nextInt(200) + 200;
+                cost[i][j] = rand.nextInt(10);
 
 
     }
 
+    /**
+     * This method generates a population of individuals
+     * @return a population of individuals
+     */
     private Individual[] generatePopulation(){
         Individual[] population = new Individual[POPULATION_SIZE];
         for (int i = 0; i < POPULATION_SIZE; i++)
@@ -208,6 +278,11 @@ public class RadarMain {
         return population;
     }
 
+    /**
+     * This method returns random placement of radars on the map
+     * @return random placement of radars on the map as int[][], where 1 indicates the presence of a radar, 0 the absence
+     * of it.
+     */
     private int[][] generateRandomPlacements(){
         Random rand = new Random();
         int[][] radarMap = new int[WIDTH][HEIGHT];
@@ -221,11 +296,13 @@ public class RadarMain {
 
     }
 
-
+    /**
+     * This method generates the map's features probabilistically.
+     */
     private void generateMap(){
         Territories[] territories = Territories.values();
         double[] probabilities = {.09,0.80,0.1,0.01};
-        int c = 0;
+
         try {
             ArrayNonuniformSelector selector = new ArrayNonuniformSelector(territories, probabilities);
 
@@ -239,6 +316,18 @@ public class RadarMain {
 
     }
 
+    /**
+     * This method returns the best individual over the course of the algorithm
+     * @return the best individual over the course of the algorithm
+     */
+    public Individual getBestIndividual(){
+        return bestIndividual;
+    }
+
+    /**
+     * This method returns the map of the terrain
+     * @return the map of the terrain
+     */
     public Territories[][] getMap() {
         return map;
     }
