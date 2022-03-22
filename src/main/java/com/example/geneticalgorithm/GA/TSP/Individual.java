@@ -1,14 +1,16 @@
 package com.example.geneticalgorithm.GA.TSP;
 
+import java.util.ArrayList;
+
 public class Individual {
 
-    private Point[] orderedLocations;
+    private ArrayList<Point> orderedLocations;
 
-    public Individual(Point[] orderedLocations) {
+    public Individual(ArrayList<Point> orderedLocations) {
         this.orderedLocations = orderedLocations;
     }
 
-    public Point[] getOrderedLocations() {
+    public ArrayList<Point> getOrderedLocations() {
         return orderedLocations;
     }
 

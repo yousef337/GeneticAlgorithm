@@ -128,7 +128,7 @@ public class RadarMain {
                 parent2 = population[rand.nextInt(SELECTION_SIZE)];
 
 
-            Individual[] offspring = bread(parent1, parent2);
+            Individual[] offspring = breed(parent1, parent2);
 
 
             Object[] bestTwo = Arrays.stream(new Individual[]{offspring[0], offspring[1], parent1, parent2}).sorted(
@@ -152,7 +152,7 @@ public class RadarMain {
      * @param parent2 the second parent
      * @return an array of the offspring
      */
-    private Individual[] bread(Individual parent1, Individual parent2){
+    private Individual[] breed(Individual parent1, Individual parent2){
         Individual[] offspring = new Individual[2];
         offspring[0] = new Individual(new int[WIDTH][HEIGHT]);
         offspring[1] = new Individual(new int[WIDTH][HEIGHT]);
