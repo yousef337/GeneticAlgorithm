@@ -9,7 +9,6 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 public class MainGraph {
 
@@ -41,22 +40,12 @@ public class MainGraph {
     private static int fitness(Individual individual){
         int fitness = 0;
 
-        // TOO MUCH TIME COMPLEXITY
-        for (String set : individual.getColoredVertices().keySet()){
-
-            HashSet<Edge> recordedEdges = new HashSet<>();
-            for (String nodeId : individual.getColoredVertices().get(set)) {
-
-                Stream<Edge> edges = graph.edges()
-                            .filter(i -> (i.getNode0().getId().equals(nodeId) && individual.getColoredVertices().get(set).contains(i.getNode1().getId()) ||
-                                    (i.getNode1().getId().equals(nodeId) && individual.getColoredVertices().get(set).contains(i.getNode0().getId()))));
-
-                recordedEdges.addAll(List.of(edges.toArray(Edge[]::new)));
-
+        for (Edge edge: graph.edges().toArray(Edge[]::new)) {
+            for (String set : colors) {
+                if (individual.getColoredVertices().get(set).contains(edge.getNode0().getId())
+                        && individual.getColoredVertices().get(set).contains(edge.getNode0().getId()))
+                    fitness--;
             }
-
-            fitness -= Math.toIntExact(recordedEdges.size());
-
 
         }
 
