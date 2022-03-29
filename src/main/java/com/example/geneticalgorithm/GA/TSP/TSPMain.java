@@ -116,7 +116,7 @@ public class TSPMain {
 
     private static Individual[] selection(Individual[] population){
         Individual[] selected = Arrays.stream(population)
-                .sorted(Comparator.comparing(TSPMain::fitness).reversed())
+                .sorted(Comparator.comparing(TSPMain::fitness))
                 .skip(POPULATION_SIZE-ELITE_SELECTION_SIZE)
                 .toArray(Individual[]::new);
 
