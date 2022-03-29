@@ -14,11 +14,12 @@ public class MainGraph {
 
     private static Graph graph;
     private final static String[] colors = {"Red","Blue","Green"};
-    private final static int POPULATION_SIZE = 10;
+    private final static int POPULATION_SIZE = 100;
     private final static double MUTATION_PROBABILITY = 0.2;
-    private final static int TOTAL_SELECTION_SIZE = 10;
+    private final static int TOTAL_SELECTION_SIZE = POPULATION_SIZE;
     private final static int ELITE_SELECTION_SIZE = 10;
-    private final static int MAX_GENERATION = 100;
+    private final static int MAX_GENERATION = 300;
+    private final static int TOURNAMENT_SELECTION_GROUP_SIZE = 3;
 
 
     public static void main(String[] args){
@@ -46,10 +47,10 @@ public class MainGraph {
 
             population = newPopulation;
 
-
             best = Arrays.stream(population).sorted(Comparator.comparing(MainGraph::fitness).reversed()).findFirst().get();
-            System.out.println(fitness(best));
 
+            if (i%10 == 0)
+                System.out.println(i);
             if (fitness(best) == 0)
                 break;
 
@@ -142,10 +143,28 @@ public class MainGraph {
     }
 
     private static Individual[] selection(Individual[] population){
-           Individual[] selected = Arrays.stream(population)
+            Individual[] selected = new Individual[TOTAL_SELECTION_SIZE];
+
+           Individual[] elites = Arrays.stream(population)
                 .sorted(Comparator.comparing(MainGraph::fitness))
                 .skip(POPULATION_SIZE-ELITE_SELECTION_SIZE)
                 .toArray(Individual[]::new);
+
+           System.arraycopy(elites, 0, selected, 0, elites.length);
+
+        // Tournament Selection
+
+        Individual[] match = new Individual[TOURNAMENT_SELECTION_GROUP_SIZE];
+
+        for (int winnerIndex = ELITE_SELECTION_SIZE; winnerIndex < TOTAL_SELECTION_SIZE; winnerIndex++) {
+
+            for (int i = 0; i < TOURNAMENT_SELECTION_GROUP_SIZE; i++) {
+                Random rand = new Random();
+                match[i] = population[rand.nextInt(POPULATION_SIZE)];
+            }
+
+            selected[winnerIndex] = (Individual) Arrays.stream(match).sorted(Comparator.comparing(MainGraph::fitness)).skip(match.length - 1).toArray()[0];
+        }
 
         return selected;
     }
